@@ -4,10 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
   try {
-    // Parsing the request body to get the prompt
     const { prompt } = await request.json();
 
-    // Validate prompt existence and length
     if (!prompt) {
       return NextResponse.json(
         { error: "Please provide a description for the image you want to generate" },
@@ -22,7 +20,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Creating the payload to send to the image generation API
     const payload = {
       messages: [{ content: prompt, role: "user" }],
       user_id: uuidv4(),
@@ -34,7 +31,9 @@ export async function POST(request: Request) {
       },
     };
 
-    // Making a POST request to the image generation API
+    // Log the payload to ensure correct data is being sent
+    console.log("Payload:", payload);
+
     const response = await axios.post(
       "https://www.blackbox.ai/api/chat",
       payload,
@@ -43,21 +42,23 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
           "User-Agent": "Mozilla/5.0 (Linux; Android 11; Infinix X6816C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.98 Mobile Safari/537.36",
         },
-        timeout: 30000, // Timeout set for the API request
+        timeout: 30000, // Timeout for the API request
       }
     );
 
-    // Check if the response contains a valid image URL
+    // Log the full response to check if the data is properly returned
+    console.log("API Response:", response.data);
+
+    // Check if the API response contains a link
     if (!response.data?.link) {
       throw new Error("No image URL received from the API");
     }
 
-    // Return the image URL in the response
     return NextResponse.json({ imageUrl: response.data.link });
   } catch (error) {
     console.error("Image generation error:", error);
 
-    // Handle error messages appropriately
+    // Handle error responses
     const errorMessage = error instanceof Error 
       ? error.message 
       : "An unexpected error occurred while generating the image";
